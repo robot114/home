@@ -1,0 +1,14 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.zsm.home.MainActivity" >
+    <item android:id="@+id/menuSetHome"
+          android:title="@string/menuSetHome"
+          android:icon="@drawable/set_home"
+          android:onClick="onSetHome">
+    </item>
+    <item android:id="@+id/menuPreferences"
+          android:title="@string/menuPreferences"
+          android:icon="@drawable/setting"
+          android:onClick="onPreferences"></item>
+
+</menu>

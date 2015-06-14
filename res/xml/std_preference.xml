@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+    <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+        <PreferenceCategory android:title="@string/prefProximityNotify">
+	        <SwitchPreference android:switchTextOff="@string/prefProximityNotifyOff"
+	            			  android:switchTextOn="@string/prefProximityNotifyOn"
+	            			  android:summaryOff="@string/prefSummaryProximityNotifyOff"
+	            			  android:summaryOn="@string/prefSummaryProximityNotifyOn"
+	            			  android:key="PROXIMITY_ALERT_ON" android:title="@string/prefProximityNotify"/>
+	        <ListPreference android:entryValues="@array/prefProximityEntries"
+							android:entries="@array/prefProximityEntries"
+							android:key="PROXIMITY_DISTANCE"
+							android:title="@string/prefProximityDistance"
+							android:summary="@string/prefSummaryProximityDistance"
+							android:dependency="PROXIMITY_ALERT_ON"/>
+        </PreferenceCategory>
+    </PreferenceScreen>

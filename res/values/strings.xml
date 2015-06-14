@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Home</string>
+
+    <string name="menuSetHome">Set Home</string>
+    <string name="promptTurnOnLocationAccess">Turn on location access, please!</string>
+    <string name="menuProximityNotify">Home Proximity Notification</string>
+    <string name="prefSummaryProximityNotifyOn">Notified when you approach your home</string>
+    <string name="prefSummaryProximityNotifyOff">Not notified when you approach your home.</string>
+    <string name="prefProximityNotifyOn">ON</string>
+    <string name="prefProximityNotifyOff">OFF</string>
+    <string name="prefProximityNotify">Proximity Notification</string>
+    <string name="prefSummaryProximityNotify">Whether notified when you approach your home</string>
+    <string name="prefProximityDistance">Proximity Distance( m )</string>
+    <string name="prefSummaryProximityDistance">The distance to home to notify</string>
+    <string name="menuPreferences">Preferences</string>
+    <string name="homeAt">"Home at: (%1$f, %2$f), from %3$s"</string>
+    <string name="currentAt">"Now you at: (%1$f, %2$f), from %3$s"</string>
+
+</resources>
