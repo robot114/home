@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layoutHomeAddress"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_alignParentStart="true"
+    android:layout_alignParentTop="true"
+    android:contentDescription="@string/saveHome" >
+
+    <RelativeLayout
+        android:id="@+id/layoutHomeAddressText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true" >
+
+        <RadioButton
+            android:id="@+id/radioButtonAddressFromInput"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:labelFor="@+id/textViewHomeAddress"
+            android:text="@string/homeAddressLabel" />
+
+        <EditText
+            android:id="@+id/textViewHomeAddress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toEndOf="@id/radioButtonAddressFromInput"
+            android:layout_toStartOf="@+id/imageViewCopyHomeAddress"
+            android:inputType="textPostalAddress"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <ImageView
+            android:id="@+id/imageViewCopyHomeAddress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:contentDescription="@string/appendAddressFromSearch"
+            android:src="@drawable/current_as_home" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@id/layoutHomeAddressText" >
+
+        <RadioButton
+            android:id="@+id/radioButtonAddressFromSearchResult"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/selectHomeAddressFromSearchResult" />
+
+        <Spinner
+            android:id="@+id/spinnerSearchResult"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toEndOf="@id/radioButtonAddressFromSearchResult" />
+
+    </RelativeLayout>
+
+</RelativeLayout>

@@ -61,16 +61,16 @@ public class MainActivity extends Activity implements Observer {
 		
 		setContentView( R.layout.main );
 		
-		Preferences prefs = Preferences.getInstance();
-		Location homeLocation = prefs.getHomeLocation();
-		HomeLocation.getInstance()
-			.setProximityAlert(this, prefs.isProximityAlertOn(),
-							   homeLocation,
-							   prefs.getHomeProximityDistance() );
-		
 		IntentFilter filter = new IntentFilter( HomeApplication.HOME_PROXIMITY_ALERT );
 		registerReceiver(new HomeProximityReceiver(), filter);
 		Log.d( "Proximity alert registered.", filter );
+		
+		Preferences prefs = Preferences.getInstance();
+		Location homeLocation = prefs.getHomeLocation();
+		HomeLocation.getInstance()
+			.setProximityAlert(prefs.isProximityAlertOn(),
+							   homeLocation,
+							   prefs.getHomeProximityDistance() );
 		
 		homeAt = (TextView)findViewById( R.id.textViewHomeLocation );
 		updateView(homeLocation, homeAt, R.string.homeAt);
@@ -124,7 +124,8 @@ public class MainActivity extends Activity implements Observer {
             startActivity(myIntent);
 		}
 		
-		HomeLocation.getInstance().updateAndSaveLocation();
+		Intent homeIntent = new Intent( this, HomeActivity.class );
+		startActivityForResult(homeIntent, 1);
 	}
 
 	public void onPreferences( MenuItem item ) {
@@ -140,25 +141,23 @@ public class MainActivity extends Activity implements Observer {
 	}
 	
 	private void toastHome( Location homeLocation ) {
-		String homeStr
-			= getResources().getString( R.string.homeAt,
-										homeLocation.getLongitude(),
-										homeLocation.getLatitude(),
-										homeLocation.getProvider() );
+		String homeStr = toLocationString(homeLocation, R.string.homeAt);
 		Toast.makeText(this, homeStr, Toast.LENGTH_LONG ).show();
 	}
 
 	private void updateView(Location location, TextView textView, int resId) {
 		if( location != null ) {
-			String homeStr
-				= getResources().getString( resId,
-											location.getLongitude(),
-											location.getLatitude(),
-											location.getProvider() );
-			textView.setText(homeStr);
+			textView.setText(toLocationString(location, resId));
 		} else {
 			textView.setText( "" );
 		}
+	}
+
+	private String toLocationString(Location location, int resId) {
+		return getResources().getString( resId,
+									location.getLatitude(),
+									location.getLongitude(),
+									location.getProvider() );
 	}
 
 }

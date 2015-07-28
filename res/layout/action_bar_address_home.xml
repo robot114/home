@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="match_parent"
+    android:background="@color/actioBarBackground"
+    android:paddingLeft="@dimen/actionBarHorizationMargin"
+    android:paddingRight="@dimen/actionBarHorizationMargin" >
+
+    <ImageView
+        android:id="@+id/imageViewToLocateHome"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
+        android:background="@android:color/transparent"
+        android:contentDescription="@string/backToLocateHome"
+        android:src="@drawable/left" />
+
+    <TextView
+        android:id="@+id/textViewAddressHomeTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_toEndOf="@+id/imageViewToLocateHome"
+        android:layout_toStartOf="@+id/imageViewSaveHome"
+        android:gravity="center_horizontal"
+        android:paddingLeft="@dimen/actionBarHorizationMargin"
+        android:paddingRight="@dimen/actionBarHorizationMargin"
+        android:text="TextView"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <ImageView
+        android:id="@+id/imageViewSaveHome"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:contentDescription="@string/saveHome"
+        android:src="@drawable/ok" />
+
+</RelativeLayout>

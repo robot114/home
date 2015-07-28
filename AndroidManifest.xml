@@ -6,11 +6,19 @@
 
     <uses-sdk
         android:minSdkVersion="17"
-        android:targetSdkVersion="21" />
+        android:targetSdkVersion="22" />
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_MOCK_LOCATION"/>
-
+    
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+	<uses-permission android:name="android.permission.READ_PHONE_STATE" />
+	<uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+	<uses-permission android:name="android.permission.CHANGE_CONFIGURATION" />
+	
     <application
         android:allowBackup="true"
         android:icon="@drawable/home"
@@ -28,9 +36,26 @@
         <activity android:name=".preferences.MainPreferencesActivity"></activity>
         <receiver android:name=".app.HomeProximityReceiver">
             <intent-filter>
-                <action android:name="com.zsm.home.HOME_PROXIMITY_ALERT"/>
+                <action android:name="com.zsm.home.ACTION_HOME_PROXIMITY_ALERT"/>
             </intent-filter>
         </receiver>
-    </application>
+        <meta-data
+            android:name="com.amap.api.v2.apikey"
+            android:value="80c437d8c9c0525a8e27242f08cc2e23"/>
+        <meta-data
+            android:name="com.baidu.lbsapi.API_KEY"
+            android:value="2a4R75Ejx1q1MolUUxGQNgWh"/>
+        <activity android:name=".ui.HomeActivity">
+            <meta-data android:name="android.app.searchable" android:resource="@xml/searchable"/>
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH"/>
+            </intent-filter>
+        </activity>
+        <provider
+        	android:name="com.zsm.android.location.GeocoderProvider"
+            android:authorities="com.zsm.geocoderprovider">
+            <path-permission android:pathPrefix="/search_suggest_query"/>
+        </provider>
+	</application>
 
 </manifest>

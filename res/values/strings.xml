@@ -17,5 +17,15 @@
     <string name="menuPreferences">Preferences</string>
     <string name="homeAt">"Home at: (%1$f, %2$f), from %3$s"</string>
     <string name="currentAt">"Now you at: (%1$f, %2$f), from %3$s"</string>
+    <string name="currentAsHome">Set current location as home</string>
+    <string name="saveHome">Save current location as home</string>
+    <string name="searchDescription">Search location</string>
+    <string name="homeAddressLabel">"Address: "</string>
+    <string name="appendAddressFromSearch">Append address from search result</string>
+    <string name="selectHomeAddressFromSearchResult">from search:</string>
+    <string name="menuLocateHome">Locate Home</string>
+    <string name="menuAddressHome">Address Home</string>
+    <string name="noCurrentLocation">No current location, locate first!</string>
+    <string name="backToLocateHome">Back to locate home</string>
 
 </resources>

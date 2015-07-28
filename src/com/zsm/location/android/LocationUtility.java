@@ -1,4 +1,4 @@
-package com.zsm.home.location;
+package com.zsm.location.android;
 
 import com.zsm.log.Log;
 
@@ -29,6 +29,10 @@ public class LocationUtility {
 	    if (currentBestLocation == null) {
 	        // A new location is always better than no location
 	        return true;
+	    }
+	    
+	    if( newLocation == null ) {
+	    	return false;
 	    }
 
 	    // Check whether the new location fix is newer or older

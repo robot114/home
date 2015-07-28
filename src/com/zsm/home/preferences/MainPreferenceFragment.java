@@ -1,6 +1,5 @@
 package com.zsm.home.preferences;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceChangeListener;
@@ -23,9 +22,8 @@ public class MainPreferenceFragment extends PreferenceFragment {
 			public boolean onPreferenceChange(Preference preference,
 					Object newValue) {
 				Preferences prefs = Preferences.getInstance();
-				Activity activity = MainPreferenceFragment.this.getActivity();
 				HomeLocation.getInstance()
-					.setProximityAlert( activity, (boolean)newValue,
+					.setProximityAlert( (boolean)newValue,
 									    prefs.getHomeLocation(),
 									    prefs.getHomeProximityDistance() );
 				return true;
@@ -43,10 +41,9 @@ public class MainPreferenceFragment extends PreferenceFragment {
 					return true;
 				}
 				
-				Activity activity = MainPreferenceFragment.this.getActivity();
 				float distance = Float.valueOf((String) newValue);
 				HomeLocation.getInstance()
-					.setProximityAlert( activity, alertOn,
+					.setProximityAlert( alertOn,
 									    prefs.getHomeLocation(),
 									    distance );
 				return true;

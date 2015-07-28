@@ -12,7 +12,6 @@ public class HomeProximityReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		System.out.println( "On Receiving!!!!!!!!!!!!!!!!!!!!" );
 		String key = LocationManager.KEY_PROXIMITY_ENTERING;
 		if( !intent.hasExtra(key) ) {
 			Log.i( "The key does not exist, it is a fake alert!", key );

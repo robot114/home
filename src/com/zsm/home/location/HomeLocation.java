@@ -16,6 +16,7 @@ import android.os.Looper;
 
 import com.zsm.home.app.HomeApplication;
 import com.zsm.home.preferences.Preferences;
+import com.zsm.location.android.LocationUtility;
 import com.zsm.log.Log;
 
 public class HomeLocation extends Observable
@@ -30,6 +31,7 @@ public class HomeLocation extends Observable
 	private boolean settingHomeLocation;
 	private long locationDeltaTime;
 	private int homeLocationSet;
+	private Context context;
 
 	public static void init( Context c, long locationDeltaTime ) {
 		if( instance != null ) {
@@ -43,6 +45,7 @@ public class HomeLocation extends Observable
 	}
 	
 	private HomeLocation( Context c, long locationDeltaTime ) {
+		this.context = c;
 		this.locationDeltaTime = locationDeltaTime;
 		
 		homeLocation = Preferences.getInstance().getHomeLocation();
@@ -144,27 +147,27 @@ public class HomeLocation extends Observable
 	public void onProviderDisabled(String provider) {
 	}
 	
-	public void setProximityAlert(Context activity, boolean alertOn,
-								  Location home, float distance) {
-		
-		LocationManager lm
-			= (LocationManager)activity
-					.getSystemService( Context.LOCATION_SERVICE );
+	public void setProximityAlert(boolean alertOn, Location home, float distance) {
 		
 		if( HomeApplication.proximityAlertIntent != null ) {
 			Log.d( "Remove the previous alert first!",
 				   HomeApplication.proximityAlertIntent );
-			lm.removeProximityAlert( HomeApplication.proximityAlertIntent );
+			locationManager.removeProximityAlert( 
+					HomeApplication.proximityAlertIntent );
+			
 			HomeApplication.proximityAlertIntent = null;
 		}
 		if( alertOn && home != null ) {
 			Log.d( "Alert is ON, add new alert.", "homeLocation", home, "distance", distance );
 			Intent intent = new Intent( HomeApplication.HOME_PROXIMITY_ALERT );
 			HomeApplication.proximityAlertIntent
-				= PendingIntent.getBroadcast( activity, -1, intent,
+				= PendingIntent.getBroadcast( context, 0, intent,
 											  PendingIntent.FLAG_CANCEL_CURRENT );
-			lm.addProximityAlert( home.getLatitude(), home.getLongitude(),
-								  distance, -1,
+			locationManager.addProximityAlert( 
+								  home.getLatitude(),
+								  home.getLongitude(),
+								  distance,
+								  -1,
 								  HomeApplication.proximityAlertIntent );
 		}
 	}
