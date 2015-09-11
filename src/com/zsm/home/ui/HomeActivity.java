@@ -33,6 +33,7 @@ public class HomeActivity extends Activity implements FragmentWizard {
         locateHomeFragment.setArguments(getIntent().getExtras());
         addressHomeFragment.setArguments(getIntent().getExtras());
         
+        getActionBar().setDisplayOptions( ActionBar.DISPLAY_SHOW_CUSTOM  );
         // Add the fragment to the 'fragment_container' FrameLayout
         getFragmentManager().beginTransaction()
                 .add(R.id.homeFragmentContainer, locateHomeFragment).commit();
@@ -44,10 +45,10 @@ public class HomeActivity extends Activity implements FragmentWizard {
 		FragmentTransaction ft = getFragmentManager().beginTransaction();
 		if( from == locateHomeFragment ) {
             ft.replace(R.id.homeFragmentContainer, addressHomeFragment);
-            getActionBar().setDisplayOptions( ActionBar.DISPLAY_SHOW_CUSTOM  );
+            addressHomeFragment.setHomeLocationData( data );
 		} else {
 			ft.replace(R.id.homeFragmentContainer, locateHomeFragment);
-	        getActionBar().setDisplayOptions( 0, ActionBar.DISPLAY_SHOW_CUSTOM  );
+			locateHomeFragment.setHomeAddressData( data );
 		}
 		
 		ft.commit();

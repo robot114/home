@@ -7,9 +7,20 @@
         android:id="@+id/textViewHomeAddress"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_toEndOf="@id/labelHomeAddress"
+        android:layout_alignBaseline="@+id/imageViewToHome"
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@+id/imageViewToHome"
         android:textAlignment="center"
         android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <ImageView
+        android:id="@+id/imageViewToHome"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:contentDescription="@string/toHome"
+        android:src="@drawable/to_home" />
 
     <com.amap.api.maps2d.MapView
         xmlns:android="http://schemas.android.com/apk/res/android"

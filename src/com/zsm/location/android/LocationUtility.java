@@ -6,6 +6,9 @@ import android.location.Location;
 
 public class LocationUtility {
 
+	public static final double METER_TO_DEGREE = 8.982999673118623e-6;
+	public static final double DEFAULT_LOCATION_TOILANCE = METER_TO_DEGREE;
+	
 	static public Location getBetterLocation( Location a, Location b,
 											  long deltaTime ) {
 		
@@ -79,4 +82,48 @@ public class LocationUtility {
 	    return provider1.equals(provider2);
 	}
 	
+	static public boolean samePosition( Location a, Location b ) {
+		return nearEnough( a, b, DEFAULT_LOCATION_TOILANCE );
+	}
+	
+	static public boolean nearEnough(Location a, Location b, int distanceInMeters) {
+		return nearEnough( a, b, distanceToToilence( distanceInMeters ) );
+	}
+
+	static public boolean nearEnough(Location a, Location b, double toilance) {
+		if( a == b ) {
+			return true;
+		}
+		
+		if( a == null || b == null ) {
+			return false;
+		}
+		
+		if( a.hasAltitude() && b.hasAltitude()
+				&& Math.abs( a.getAltitude() - b.getAltitude() ) > toilance ) {
+			
+			return false;
+		}
+		
+		if( Math.abs( a.getLatitude() - b.getLatitude() ) > toilance
+			|| Math.abs( a.getLongitude() - b.getLongitude() ) > toilance ) {
+			
+			return false;
+		}
+		
+		return true;
+	}
+	
+	static public boolean nearEnough( double lat1, double lng1,
+									  double lat2, double lng2,
+									  double toilance ) {
+		
+		return ( Math.abs( lat1 - lat2 ) <= toilance 
+				 && Math.abs( lng1 - lng2 ) <= toilance );
+	}
+
+	static public double distanceToToilence( int distanceInMeters ) {
+		
+		return (double)distanceInMeters * METER_TO_DEGREE;
+	}
 }

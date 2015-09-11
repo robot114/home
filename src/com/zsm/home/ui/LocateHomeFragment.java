@@ -1,61 +1,112 @@
 package com.zsm.home.ui;
 
-import java.util.Locale;
-
+import android.app.ActionBar;
 import android.app.Fragment;
-import android.app.SearchManager;
 import android.content.Context;
-import android.database.Cursor;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.support.v4.view.MenuItemCompat;
+import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.SearchView;
-import android.widget.Toast;
-import android.widget.SearchView.OnSuggestionListener;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.amap.api.maps2d.AMap;
 import com.amap.api.maps2d.CameraUpdate;
 import com.amap.api.maps2d.CameraUpdateFactory;
 import com.amap.api.maps2d.LocationSource;
 import com.amap.api.maps2d.MapView;
+import com.amap.api.maps2d.model.BitmapDescriptor;
 import com.amap.api.maps2d.model.BitmapDescriptorFactory;
 import com.amap.api.maps2d.model.CameraPosition;
 import com.amap.api.maps2d.model.LatLng;
 import com.amap.api.maps2d.model.MarkerOptions;
-import com.zsm.android.location.GeocoderProvider;
 import com.zsm.home.R;
 import com.zsm.home.app.HomeApplication;
 import com.zsm.home.preferences.Preferences;
-import com.zsm.location.LocationClient;
-import com.zsm.location.OnLocationUpdateListener;
-import com.zsm.location.android.AndroidLocationClient;
+import com.zsm.location.GeodeticCoordinate;
+import com.zsm.location.GeodeticCoordinate.TYPE;
+import com.zsm.location.LocationSerivce;
+import com.zsm.location.LocationUpdateListener;
+import com.zsm.location.android.AndroidLocationService;
+import com.zsm.location.android.LocationUtility;
 import com.zsm.log.Log;
 
 public class LocateHomeFragment extends Fragment
-				implements OnLocationUpdateListener<Location>, LocationSource,
-							OnSuggestionListener {
+				implements LocationUpdateListener<Location>, LocationSource {
 
-	private static final int MARK_AS_LOCATION = 2;
-	private static final int MARK_AS_HOME = 1;
-	private static final LatLng DEFAULT_LOCATION = new LatLng( 116.391469, 39.906708 );
+	/**
+	 * The Geodetic Coordinate System for this class is WGS84
+	 * 
+	 * @author zsm
+	 *
+	 */
+	public static class CurrentLocation {
+		// The Geodetic Coordinate System for this class is WGS84
+		final static private TYPE gcsType = TYPE.WGS84;
+		private Location location;
+		private int mark;
+		private String address;
+
+		public CurrentLocation() {
+			address = "";
+		}
+
+		public Location getLocation() {
+			return location;
+		}
+
+		public int getMark() {
+			return mark;
+		}
+
+		public void set(Location l, int mark, @NonNull String address) {
+			location = l;
+			this.mark = mark;
+			this.address = address;
+		}
+
+		public String getAddress() {
+			return address;
+		}
+
+		@Override
+		public String toString() {
+			return location + ", mark: " + mark
+					+ ", address: " + address;
+		}
+	}
+
+	private GeodeticCoordinate gcForTrans
+				= new GeodeticCoordinate( 0, 0, CurrentLocation.gcsType );
+	
+	static final int MARK_AS_LOCATION = 2;
+	static final int MARK_AS_HOME = 1;
+	static final int NO_MARK = 0;
+	private static final LatLng DEFAULT_LOCATION = new LatLng( 39.906708, 116.391469 );
 	private static final float DEFAULT_ZOOM_FACTOR = 18.f;
 	private MapView mapView;
 	private AMap aMap;
-	private LocationClient<String, Location> locationClient;
-	private SearchView searchView;
-	private Location currentLocation;
+	private LocationSerivce<String, Location> locationService;
+	private CurrentLocation currentLocation = new CurrentLocation();
 	private View view;
 	
 	private FragmentWizard fragmentWizard;
+	private Bundle contextData;
+
+	private static int logoAndToAddressWidth = 0;
+	private static BitmapDescriptor markHome;
+	
+	private Location homeLocation;
+	private String homeAddress;
+	private LocationSearcher searcher;
 
 	public LocateHomeFragment( FragmentWizard fw ) {
 		super();
@@ -66,6 +117,8 @@ public class LocateHomeFragment extends Fragment
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setHasOptionsMenu(true);
+		homeLocation = Preferences.getInstance().getHomeLocation();
+		homeAddress = Preferences.getInstance().getHomeAddress();
 	}
 
 	@Override
@@ -75,8 +128,19 @@ public class LocateHomeFragment extends Fragment
 			view
 				= inflater.inflate( R.layout.locate_home_fragment, 
 									container, false );
-			initLocationClient();
+			initLocationService();
 			initMap(savedInstanceState);
+			view.findViewById( R.id.imageViewToHome )
+				.setOnClickListener( new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						if( homeLocation != null ) {
+							updateCurrentLocation( homeLocation,
+												   MARK_AS_HOME,
+												   homeAddress );
+						}
+					}
+				} );
 		} else {
 			if( view.getParent() != null ) {
 				((ViewGroup) view.getParent()).removeView(view);
@@ -87,56 +151,86 @@ public class LocateHomeFragment extends Fragment
 	}
 
 	private void locateOnMap() {
-		Location homeLoca = Preferences.getInstance().getHomeLocation();
-		Log.d( "Locate on the map", "current", currentLocation, "home", homeLoca );
-		if( currentLocation != null ) {
-			updateToPosition( currentLocation,
-							  currentLocation == homeLoca 
-							  	? MARK_AS_HOME : MARK_AS_LOCATION );
-		} else if( homeLoca != null ) {
-			updateToPosition( homeLoca, MARK_AS_HOME );
-			currentLocation = homeLoca;
-			String hat = Preferences.getInstance().getHomeAddress();
-			TextView homeAddress
-				= (TextView)view.findViewById( R.id.textViewHomeAddress );
-			homeAddress.setText(hat);
+		Location cl = currentLocation.getLocation();
+		Log.d( "Locate on the map", "current", currentLocation,
+				"home", homeLocation, "home addr", homeAddress );
+		if( cl != null ) {
+			String ca = currentLocation.getAddress();
+			int mark;
+			String ad;
+			if( LocationUtility.samePosition(homeLocation, cl ) 
+				&& ( ca.length() == 0 || ca.equals( homeAddress ) ) ) {
+				
+				mark = MARK_AS_HOME;
+				ad = homeAddress;
+			} else {
+				mark = MARK_AS_LOCATION;
+				ad = ca;
+			}
+			updateToPosition(cl, mark);
+			currentLocation.set(cl, mark, ad);
+		} else if( homeLocation != null ) {
+			updateToPosition( homeLocation, MARK_AS_HOME );
+			currentLocation.set(homeLocation, MARK_AS_HOME, homeAddress );
 		} else {
-			currentLocation = null;
+			updateToPosition( DEFAULT_LOCATION.latitude,
+							  DEFAULT_LOCATION.longitude,
+							  NO_MARK );
+			currentLocation.set(null, NO_MARK, "" );
 			toMyLocation();
 		}
+	}
+
+	private void setAddressText() {
+		String address = null;
+		if( contextData != null ) {
+			address = contextData.getString( 
+						HomeApplication.KEY_HOME_LOCATION_ADDRESS );
+		}
+		
+		if( !TextUtils.isEmpty( address ) ) {
+			// Back from the address fragment, and do some input for the address
+			searcher.setViewIconified(false);
+			searcher.setSearchQuery(address, false);
+		} 
+		TextView homeAddressView
+			= (TextView)view.findViewById( R.id.textViewHomeAddress );
+		homeAddressView.setText(homeAddress);
 	}
 
 	private void initMap(Bundle savedInstanceState) {
 		mapView = (MapView) view.findViewById(R.id.mapHome);
 		mapView.onCreate(savedInstanceState);
 		aMap = mapView.getMap();
-		aMap.setLocationSource(this);
 		aMap.getUiSettings().setMyLocationButtonEnabled(true);
 		aMap.setMyLocationEnabled( true );
+		aMap.setLocationSource(this);
 	}
 
-	private void initLocationClient() {
-		if( locationClient == null ) {
+	private void initLocationService() {
+		if( locationService == null ) {
 			LocationManager locationManager
 				= (LocationManager)getActivity()
 					.getSystemService(Context.LOCATION_SERVICE);
 		
-			locationClient = new AndroidLocationClient();
-			locationClient.init( locationManager,
-								 HomeApplication.LOCATION_DELTA_TIME );
+			locationService = new AndroidLocationService();
+			locationService.init( getActivity(),
+								  locationManager,
+								  HomeApplication.LOCATION_DELTA_TIME,
+								  HomeApplication.LOCATION_DELTA_TIME*3 );
 		}
 	}
 
 	private void toMyLocation() {
 		Location lastLocation
-			= locationClient.getLastUpdatedLocation( currentLocation );
+			= locationService
+				.getLastUpdatedLocation( currentLocation.getLocation() );
 		
 		if ( lastLocation != null ) {
 			updateToPosition( lastLocation, MARK_AS_LOCATION );
-			currentLocation = lastLocation;
+			currentLocation.set(lastLocation, MARK_AS_LOCATION, "");
 		} else {
-			locationClient.updateCurrentLocation( 
-								HomeApplication.LOCATION_DELTA_TIME*2, this);
+			locationService.startUpdate(this);
 		}
 	}
 
@@ -144,53 +238,84 @@ public class LocateHomeFragment extends Fragment
 		updateToPosition(loca.getLatitude(), loca.getLongitude(), markFlag);
 	}
 
+	/**
+	 * 
+	 * @param latitude in WGS84
+	 * @param longitude in WGS84
+	 * @param markFlag
+	 */
 	private void updateToPosition(double latitude, double longitude, int markFlag) {
 		
-		Log.d( "Move to the position", "latitude", latitude,
-				"longitude", longitude, "markFlag", markFlag );
+		gcForTrans.setData(latitude, longitude, CurrentLocation.gcsType );
+		
+		Log.d( "Move to the position", "position", gcForTrans,
+			   "markFlag", markFlag );
+		
+		gcForTrans.transformTo( TYPE.GCJ02 );
+		Log.d( "Position in GCJ", gcForTrans );
 		
 		aMap.clear();
+		float zoom;
+		if( markFlag == NO_MARK ) {
+			zoom = aMap.getCameraPosition().zoom;
+		} else {
+			zoom = DEFAULT_ZOOM_FACTOR;
+		}
 		
-		LatLng latLng = new LatLng( latitude, longitude );
+		LatLng latLng
+			= new LatLng( gcForTrans.getLatitude(), gcForTrans.getLongitude() );
+		CameraUpdate cu
+			= CameraUpdateFactory
+				.newCameraPosition( new CameraPosition( latLng, zoom, 0, 0));
+		
+		aMap.moveCamera(cu);
+		if( markFlag == NO_MARK ) {
+			return;
+		}
+		
 		MarkerOptions marker
 			= new MarkerOptions().position( latLng );
 		if( markFlag == MARK_AS_HOME ) {
 			marker
 				.setGps( false )
-				.icon( BitmapDescriptorFactory.fromResource( R.drawable.home ) );
+				.icon( getMarkHome() );
 		}
-		CameraUpdate cu
-			= CameraUpdateFactory.newCameraPosition(
-					new CameraPosition( latLng, DEFAULT_ZOOM_FACTOR, 0, 0));
-		aMap.moveCamera(cu);
 		aMap.addMarker(marker);
+	}
+
+	private BitmapDescriptor getMarkHome() {
+		if( markHome == null ) {
+			markHome = BitmapDescriptorFactory.fromResource( R.drawable.home );
+		}
+		
+		return markHome;
 	}
 	
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		super.onCreateOptionsMenu(menu, inflater);
-		inflater.inflate( R.menu.locate_home, menu);
-		MenuItem searchItem = menu.findItem(R.id.itemSearchHomeAddress);
-		searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+		ActionBar actionBar = getActivity().getActionBar();
+		actionBar.setCustomView( R.layout.action_bar_locate_home );
+		final View v = actionBar.getCustomView();
 		
-		OnLocationQueryListener queryListener = new OnLocationQueryListener( );
-		searchView.setOnQueryTextListener( queryListener );
-		SearchManager sm
-			= (SearchManager)getActivity().getSystemService(Context.SEARCH_SERVICE);
-		searchView.setSearchableInfo(
-				sm.getSearchableInfo( getActivity().getComponentName()));
-		searchView.setOnSuggestionListener(this);
-		
-		MenuItem addressHomeItem = menu.findItem( R.id.itemAddressHome );
-		addressHomeItem.setOnMenuItemClickListener( new OnMenuItemClickListener() {
+		initSearchView(v);
+		View toAddressHome = v.findViewById( R.id.imageViewToAddressHome );
+		toAddressHome.setOnClickListener( new OnClickListener() {
 
 			@Override
-			public boolean onMenuItemClick(MenuItem item) {
+			public void onClick(View v) {
 				toAddressHome();
-				return true;
 			}
 			
 		} );
+		
+		setAddressText();
+	}
+
+	private void initSearchView(View v) {
+		SearchView searchView
+			= (SearchView) v.findViewById( R.id.searchViewSearchHome );
+		searcher = new LocationSearcher(this, searchView);
 	}
 
 	@Override
@@ -210,72 +335,58 @@ public class LocateHomeFragment extends Fragment
 	public void onPause() {
 		super.onPause();
 		mapView.onPause();
+		// In case the searchview not be clicked and logoAndToAddressWidth
+		// not initialized
+		getLogoAndToAddressWidth();
 	}
 
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		locationClient.cancelUpdate( this );
+		locationService.cancelUpdate( );
+		locationService = null;
 		mapView.onDestroy();
 		view = null;
+		markHome = null;
+		searcher.destroy();
 	}
 
 	@Override
 	public void onUpdate(Location location) {
-		updateToPosition(location, MARK_AS_LOCATION);
-		currentLocation = location;
+		updateCurrentLocation(location, MARK_AS_LOCATION, "");
+	}
+
+	private void updateCurrentLocation(Location location, int mark, String address) {
+		updateToPosition(location, mark);
+		currentLocation.set(location, mark, address);
+		searcher.setViewIconified(false);
+		searcher.setSearchQuery(address, true);
 	}
 
 	@Override
-	public void onCancel() {
+	public void onCancel( CANCEL_REASON reason ) {
+		if( reason == CANCEL_REASON.TIME_OUT ) {
+			Toast
+				.makeText(getActivity(), R.string.locateCurrentTimeout,
+						  Toast.LENGTH_LONG )
+				.show();
+		}
 	}
 
 	@Override
 	public void activate(OnLocationChangedListener l) {
 		Log.d("To my current location" );
-		if( currentLocation != null ) {
-			 updateToPosition(currentLocation, MARK_AS_HOME );
-			 return;
-		}
 		toMyLocation();
 	}
 
 	@Override
 	public void deactivate() {
 		Log.d("Remove current location listener");
-		locationClient.cancelUpdate( this );
+		locationService.cancelUpdate( );
 	}
 
-	@Override
-	public boolean onSuggestionSelect(int position) {
-		return false;
-	}
-
-	@Override
-	public boolean onSuggestionClick(int position) {
-		Cursor cursor = (Cursor)(searchView.getSuggestionsAdapter().getItem(position));
-		int latColIndex = cursor.getColumnIndex( GeocoderProvider.COLUMN_LATITUDE );
-		double lat = cursor.getDouble(latColIndex);
-		int lngColIndex = cursor.getColumnIndex( GeocoderProvider.COLUMN_LONGITUDE );
-		double lng = cursor.getDouble(lngColIndex);
-		
-		int textColIndex = cursor.getColumnIndex( SearchManager.SUGGEST_COLUMN_TEXT_1 );
-		String address = cursor.getString( textColIndex );
-		searchView.setQuery( address, false );
-		
-		Log.d( "Clicked address: ", address, "lat", lat, "lng", lng );
-		updateToPosition( lat, lng, MARK_AS_LOCATION );
-		currentLocation = new Location( (String)"?" );
-		currentLocation.setLatitude( lat );
-		currentLocation.setLongitude( lng );
-		currentLocation.setTime( System.currentTimeMillis() );
-		currentLocation.setAccuracy( 10.0f );
-		
-		return true;
-	}
-	
 	private void toAddressHome( ) {
-		if( currentLocation == null ) {
+		if( currentLocation.getLocation() == null ) {
 			Toast.makeText( getActivity(), R.string.noCurrentLocation,
 							Toast.LENGTH_LONG )
 				 .show();
@@ -283,8 +394,55 @@ public class LocateHomeFragment extends Fragment
 		}
 		
 		Bundle data = new Bundle();
-		data.putParcelable( "HOME_LOCATION", currentLocation );
-		data.putString( "LOCATION_ADDRAESS", searchView.getQuery().toString() );
+		data.putParcelable( HomeApplication.KEY_HOME_LOCATION,
+							currentLocation.getLocation() );
+		String add;
+		switch( currentLocation.getMark() ) {
+			case MARK_AS_LOCATION:
+				add = searcher.getQueryText().toString();
+				if( add.isEmpty() ) {
+					add = homeAddress;
+				}
+				break;
+			case MARK_AS_HOME:
+				add = homeAddress;
+				break;
+			default:
+				add = "";
+				break;
+		}
+		data.putString( HomeApplication.KEY_HOME_LOCATION_ADDRESS, add );
 		fragmentWizard.next( this, data );
+	}
+
+	public void setHomeAddressData(Bundle data) {
+		contextData = data;
+	}
+
+	int getLogoAndToAddressWidth() {
+		if( logoAndToAddressWidth == 0 ) {
+			View abv = getActivity().getActionBar().getCustomView();
+			View logo = abv.findViewById( R.id.imageViewLocateHomeLogo );
+			View ta = abv.findViewById( R.id.imageViewToAddressHome );
+			logoAndToAddressWidth = logo.getWidth() + ta.getWidth();
+		}
+		
+		return logoAndToAddressWidth;
+	}
+
+	CurrentLocation getCurrentLocation() {
+		return currentLocation;
+	}
+
+	void setCurrentLocationAndUpdateMap( double lat, double lng, String address ) {
+		updateToPosition( lat, lng, MARK_AS_LOCATION );
+		Location l = new Location( (String)"?" );
+		l.setLatitude( lat );
+		l.setLongitude( lng );
+		// Time of the location MUST be old enough to make the location update
+		// happens when the 'To My Location' button pressed on the map.
+		l.setTime( 0 );
+		l.setAccuracy( 10.0f );
+		currentLocation.set(l, MARK_AS_LOCATION, address);
 	}
 }

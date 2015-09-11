@@ -70,6 +70,7 @@ public class Preferences {
 		editor.putLong(KEY_HOME_LOCATION_TIME, l.getTime());
 		editor.putString(KEY_HOME_LOCATION_PROVIDER, l.getProvider());
 		editor.commit();
+		Log.d( "Put home location to preferences.", l );
 	}
 	
 	/**
@@ -80,7 +81,11 @@ public class Preferences {
 	public Location getHomeLocation() {
 		float latitude = preferences.getFloat( KEY_HOME_LOCATION_LATITUDE, Float.NaN );
 		float longitude = preferences.getFloat( KEY_HOME_LOCATION_LONGITUDE, Float.NaN );
-		if( Float.isNaN(latitude) || Float.isNaN(longitude) ) {
+		Log.d( "Home location from pereferences.", "Lat", latitude, "lng", longitude );
+		
+		if( Float.isNaN(latitude) || Float.isNaN(longitude) 
+			|| checkLocation(latitude, longitude) ) {
+			
 			return null;
 		}
 		
@@ -97,16 +102,27 @@ public class Preferences {
 		
 		String provider = preferences.getString( KEY_HOME_LOCATION_PROVIDER, "?" );
 		l.setProvider(provider);
-		long time = preferences.getLong( KEY_HOME_LOCATION_TIME, System.currentTimeMillis() );
+		long time = preferences.getLong( KEY_HOME_LOCATION_TIME,
+										 System.currentTimeMillis() );
 		l.setTime(time);
 		
 		return l;
+	}
+
+	private boolean checkLocation(float latitude, float longitude) {
+		return latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180;
 	}
 
 	public String getHomeAddress() {
 		return preferences.getString( KEY_HOME_ADDRESS, "" );
 	}
 	
+	public void setHomeAddress(String address) {
+		preferences.edit()
+				   .putString( KEY_HOME_ADDRESS, address )
+				   .commit();
+	}
+
 	public boolean isProximityAlertOn() {
 		return preferences.getBoolean( KEY_PROXIMITY_ALERT_ON, true );
 	}
@@ -125,5 +141,4 @@ public class Preferences {
 			return 10.f;
 		}
 	}
-
 }

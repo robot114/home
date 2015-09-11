@@ -94,10 +94,6 @@ public class HomeLocation extends Observable
 
 	}
 	
-	public boolean anyProviderEnabled() {
-		return updateProviders().size() > 0;
-	}
-
 	private List<String> updateProviders() {
 		List<String> ps = locationManager.getAllProviders();
 		ps.remove( LocationManager.PASSIVE_PROVIDER );

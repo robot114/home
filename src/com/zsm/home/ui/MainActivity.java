@@ -54,6 +54,7 @@ public class MainActivity extends Activity implements Observer {
 	private LocationManager locationManager;
 	private TextView currentAt;
 	private TextView homeAt;
+	private HomeProximityReceiver homeProxReceiver;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -62,7 +63,8 @@ public class MainActivity extends Activity implements Observer {
 		setContentView( R.layout.main );
 		
 		IntentFilter filter = new IntentFilter( HomeApplication.HOME_PROXIMITY_ALERT );
-		registerReceiver(new HomeProximityReceiver(), filter);
+		homeProxReceiver = new HomeProximityReceiver();
+		registerReceiver(homeProxReceiver, filter);
 		Log.d( "Proximity alert registered.", filter );
 		
 		Preferences prefs = Preferences.getInstance();
@@ -115,15 +117,13 @@ public class MainActivity extends Activity implements Observer {
 		super.onPause();
 	}
 
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		unregisterReceiver(homeProxReceiver);
+	}
+
 	public void onSetHome( MenuItem item ) {
-		if( !HomeLocation.getInstance().anyProviderEnabled() ) {
-			
-			Toast.makeText(this, R.string.promptTurnOnLocationAccess,
-						   Toast.LENGTH_LONG).show();
-            Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-            startActivity(myIntent);
-		}
-		
 		Intent homeIntent = new Intent( this, HomeActivity.class );
 		startActivityForResult(homeIntent, 1);
 	}

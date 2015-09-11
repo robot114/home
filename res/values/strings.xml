@@ -4,7 +4,6 @@
     <string name="app_name">Home</string>
 
     <string name="menuSetHome">Set Home</string>
-    <string name="promptTurnOnLocationAccess">Turn on location access, please!</string>
     <string name="menuProximityNotify">Home Proximity Notification</string>
     <string name="prefSummaryProximityNotifyOn">Notified when you approach your home</string>
     <string name="prefSummaryProximityNotifyOff">Not notified when you approach your home.</string>
@@ -22,10 +21,20 @@
     <string name="searchDescription">Search location</string>
     <string name="homeAddressLabel">"Address: "</string>
     <string name="appendAddressFromSearch">Append address from search result</string>
-    <string name="selectHomeAddressFromSearchResult">from search:</string>
+    <string name="selectHomeAddressFromSearchResult">Append From Search:</string>
     <string name="menuLocateHome">Locate Home</string>
     <string name="menuAddressHome">Address Home</string>
     <string name="noCurrentLocation">No current location, locate first!</string>
     <string name="backToLocateHome">Back to locate home</string>
+    <string name="titleLocateHome">Locate Home</string>
+    <string name="toAddressHome">To Address Home</string>
+    <string name="titleAddressHome">Address Home</string>
+    <string name="locateCurrentTimeout">Fail to locate the current position!</string>
+    <string name="toHome">Move current location to home</string>
+    <string name="locatingProcess">Locating processed %1$s%%</string>
+    <string name="locatingStart">Start locating!</string>
+    <string name="locatingSuccess">Success to locate at ( %1$f, %2$f ) by %3$s</string>
+    <string name="noLocationEnabled">Locating is no enabled. Do you want to enable it?</string>
+    <string name="promptTryLocatingAgain">Try to locate after enabling location setting.</string>
 
 </resources>
