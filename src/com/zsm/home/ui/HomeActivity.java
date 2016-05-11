@@ -43,6 +43,7 @@ public class HomeActivity extends Activity implements FragmentWizard {
 	@Override
 	public void next(Fragment from, Bundle data) {
 		FragmentTransaction ft = getFragmentManager().beginTransaction();
+		ft.setCustomAnimations( R.animator.left_in, R.animator.right_out );
 		if( from == locateHomeFragment ) {
             ft.replace(R.id.homeFragmentContainer, addressHomeFragment);
             addressHomeFragment.setHomeLocationData( data );
