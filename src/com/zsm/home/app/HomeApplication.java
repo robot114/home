@@ -12,14 +12,16 @@ public class HomeApplication extends Application {
 
 	public static final int LOCATION_DELTA_TIME = 1000 * 60 /12;
 	
+	public static final int BLUETOOTH_SCAN_PRIOD = 20*1000;
+	
 	public static final String HOME_PROXIMITY_ALERT = "com.zsm.home.ACTION_HOME_PROXIMITY_ALERT";
 	
-	public static PendingIntent proximityAlertIntent;
-
 	public static final String KEY_HOME_LOCATION_ADDRESS = "HOME_LOCATION_ADDRAESS";
 
 	public static final String KEY_HOME_LOCATION = "HOME_LOCATION";
 	
+	public static PendingIntent proximityAlertIntent;
+
 	public HomeApplication() {
 		LogInstaller.installAndroidLog( "Home" );
 	}

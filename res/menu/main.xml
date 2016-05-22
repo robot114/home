@@ -6,6 +6,11 @@
           android:icon="@drawable/set_home"
           android:onClick="onSetHome">
     </item>
+    <item android:id="@+id/menuSelectBluetooth"
+          android:title="@string/menuSelectBluetooth"
+          android:icon="@drawable/set_home"
+          android:onClick="onSelectBluetooth">
+    </item>
     <item android:id="@+id/menuPreferences"
           android:title="@string/menuPreferences"
           android:icon="@drawable/setting"

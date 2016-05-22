@@ -1,7 +1,10 @@
 package com.zsm.home.preferences;
 
+import com.zsm.home.ui.bluetooth.NamedBluetoothDevice;
 import com.zsm.log.Log;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.location.Location;
@@ -9,6 +12,8 @@ import android.preference.PreferenceManager;
 
 public class Preferences {
 
+	private static final String KEY_HOME_BLUETOOTH_ADDRESS = "HOME_BLUETOOTH_ADDRESS";
+	private static final String KEY_HOME_BLUETOOTH_ALIAS = "HOME_BLUETOOTH_ALIAS";
 	static final String KEY_PROXIMITY_ALERT_ON = "PROXIMITY_ALERT_ON";
 	static final String KEY_PROXIMITY_DISTANCE = "PROXIMITY_DISTANCE";
 
@@ -140,5 +145,26 @@ public class Preferences {
 					+ " is illegal. Default distance returned." );
 			return 10.f;
 		}
+	}
+
+	public void setHomeBluetooth(NamedBluetoothDevice device) {
+		preferences
+			.edit()
+			.putString( KEY_HOME_BLUETOOTH_ALIAS, device.getAlias() )
+			.putString( KEY_HOME_BLUETOOTH_ADDRESS, device.getDevice().getAddress() )
+			.commit();
+	}
+	
+	public NamedBluetoothDevice getHomeBluetoothDevice() {
+		String address = preferences.getString( KEY_HOME_BLUETOOTH_ADDRESS, null );
+		BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+		BluetoothDevice phyDevice = null;
+		if( address == null 
+			|| (phyDevice = adapter.getRemoteDevice(address) ) == null ) {
+			
+			return null;
+		}
+		String alias = preferences.getString( KEY_HOME_BLUETOOTH_ALIAS, null );
+		return new NamedBluetoothDevice( phyDevice, alias );
 	}
 }

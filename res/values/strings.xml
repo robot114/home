@@ -4,6 +4,8 @@
     <string name="app_name">Home</string>
 
     <string name="menuSetHome">Set Home</string>
+    <string name="menuSelectBluetooth">Select Bluetooth</string>
+    <string name="menuPreferences">Preferences</string>
     <string name="menuProximityNotify">Home Proximity Notification</string>
     <string name="prefSummaryProximityNotifyOn">Notified when you approach your home</string>
     <string name="prefSummaryProximityNotifyOff">Not notified when you approach your home.</string>
@@ -13,7 +15,6 @@
     <string name="prefSummaryProximityNotify">Whether notified when you approach your home</string>
     <string name="prefProximityDistance">Proximity Distance( m )</string>
     <string name="prefSummaryProximityDistance">The distance to home to notify</string>
-    <string name="menuPreferences">Preferences</string>
     <string name="homeAt">"Home at: (%1$f, %2$f), from %3$s"</string>
     <string name="currentAt">"Now you at: (%1$f, %2$f), from %3$s"</string>
     <string name="currentAsHome">Set current location as home</string>
@@ -36,5 +37,14 @@
     <string name="locatingSuccess">Success to locate at ( %1$f, %2$f ) by %3$s</string>
     <string name="noLocationEnabled">Locating is no enabled. Do you want to enable it?</string>
     <string name="promptTryLocatingAgain">Try to locate after enabling location setting.</string>
-
+    <string name="promptBluetoothEnableOk">Bluetooth is enabled successfully!</string>
+    <string name="promptBluetoothEnableCanceled">Canceled to enabled bluetooth. The bluetooth cannot be used for location!</string>
+    <string name="promptNoBluetoothSelected">No bluetooth device selected to check range of home!</string>
+    <string name="mainBluetooth">Bluetooth at home is %1$s. Now it is %2$s.</string>
+    <string name="stateBtDeviceChecking">checking</string>
+    <string name="stateBtDeviceNotInRange">not in range</string>
+    <string name="stateBtDeviceInRange">in range</string>
+    <string name="selectBluetoothAtHome">Select one device below to indicate you are at home, when it is discovered.</string>
+    <string name="menuBluetoothSelectionRefresh">Refresh</string>
+    
 </resources>
