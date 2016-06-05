@@ -5,8 +5,7 @@ import java.util.Observable;
 import java.util.Observer;
 
 import android.app.Activity;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -15,36 +14,36 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.zsm.android.beacon.BeaconScanner;
-import com.zsm.android.beacon.BeaconScanner.Callback;
-import com.zsm.android.beacon.BeaconScanner.STOP_TYPE;
+import com.zsm.android.beacon.BeaconDevice;
+import com.zsm.android.beacon.BeaconOperator;
+import com.zsm.android.beacon.BeaconOperator.PROTOCOL;
+import com.zsm.android.beacon.BeaconOperatorFactory;
+import com.zsm.android.beacon.BluetoothBeacon;
+import com.zsm.android.beacon.WifiBeacon;
 import com.zsm.home.R;
 import com.zsm.home.app.HomeApplication;
 import com.zsm.home.app.HomeProximityReceiver;
 import com.zsm.home.location.HomeLocation;
 import com.zsm.home.preferences.MainPreferencesActivity;
 import com.zsm.home.preferences.Preferences;
-import com.zsm.home.ui.bluetooth.BluetoothSelectionActivity;
-import com.zsm.home.ui.bluetooth.NamedBluetoothDevice;
+import com.zsm.home.ui.beacon.BeaconSelectionActivity;
+import com.zsm.home.ui.beacon.BeaconSelectionFragment;
 import com.zsm.log.Log;
 
 public class MainActivity extends Activity implements Observer {
 
-	private static final String MAIN_SCANNER_NAME = "MainState";
-
-	public static final String EXTRAS_BLUETOOTH_DEVICE = "BLUETOOTH_DEVICE";
+	public static final String EXTRAS_DEVICE = "DEVICE";
 
 	private static final int REQUEST_HOME_LOCATION = 1;
 	private static final int REQUEST_BLUETOOTH_SELECTION = 2;
 	
-	private static final int REQUEST_BLUETOOTH_ENABLE = 100;
+	private static final int REQUEST_WIFI_SELECTION = 101;
 	
 	final private LocationListener locationListener
 		= new LocationListener() {
@@ -73,12 +72,16 @@ public class MainActivity extends Activity implements Observer {
 	private TextView mHomeAt;
 	private HomeProximityReceiver mHomeProxReceiver;
 	
-	private boolean mBluetoothPrompted = false;
 	private TextView mBluetoothView;
-	private NamedBluetoothDevice mBluetoothDevice;
+	private BluetoothBeacon mBluetoothDevice;
 
-	private BeaconScanner mBeaconScanner;
-	
+	private BeaconOperator mMainBleOperator;
+
+	private WifiBeacon mWifiDevice;
+	private BeaconOperator mMainWifiOperator;
+	protected BroadcastReceiver mWifiStateReceiver;
+	private TextView mWifiView;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -104,42 +107,76 @@ public class MainActivity extends Activity implements Observer {
 		mCurrentAt.setText( "" );
 		
 		mBluetoothView = (TextView)findViewById( R.id.textViewHomeBluetooth );
+		mWifiView = (TextView)findViewById( R.id.textViewHomeWifi );
 		
 		mLocationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-		
 		prepareForBluetooth();
+		prepareForWifi();
 	}
 
 	private void prepareForBluetooth() {
 		mBluetoothDevice = Preferences.getInstance().getHomeBluetoothDevice();
 		
-		Callback callback = new BeaconScanner.Callback() {
+		BeaconOperator.Callback callback = new BeaconOperator.Callback() {
 			@Override
-			public void stopped(STOP_TYPE type) {
+			public void stopped(BeaconOperator.STOP_TYPE type) {
 				int resId = R.string.stateBtDeviceNotInRange;
 				
-				if( type == STOP_TYPE.FOUND ) {
+				if( type == BeaconOperator.STOP_TYPE.FOUND ) {
 					resId = R.string.stateBtDeviceInRange;
 				}
-                updateBluetoothView(mBluetoothDevice, resId );
-			}
-			
-			@Override
-			public void newBeaconFound(BluetoothDevice device) {
-				if( device.equals( mBluetoothDevice.getDevice() ) ) {
-	                updateBluetoothView(mBluetoothDevice,
-	                					R.string.stateBtDeviceInRange );
-				}
+                updateDeviceView(mBluetoothDevice, mBluetoothView, resId );
 			}
 			
 			@Override
 			public void backgroundFunction(int backgroundCalledTimes) {
-				// TODO Auto-generated method stub
-				
+			}
+
+			@Override
+			public void newBeaconFound(BeaconDevice device) {
+				if( device.equals( mBluetoothDevice ) ) {
+	                updateDeviceView(mBluetoothDevice,
+	                					mBluetoothView, R.string.stateBtDeviceInRange );
+				}
 			}
 		};
-		mBeaconScanner = new BeaconScanner( this );
-		mBeaconScanner.newOperator(MAIN_SCANNER_NAME, callback);
+		
+		mMainBleOperator
+			= BeaconOperatorFactory
+				.createOperator( this, BeaconOperator.PROTOCOL.BLUETOOTH, callback );
+	}
+
+	private void prepareForWifi() {
+		mWifiDevice = Preferences.getInstance().getHomeWifiDevice();
+		
+		BeaconOperator.Callback callback = new BeaconOperator.Callback() {
+			@Override
+			public void stopped(BeaconOperator.STOP_TYPE type) {
+				int resId = R.string.stateBtDeviceNotInRange;
+				
+				if( type == BeaconOperator.STOP_TYPE.FOUND ) {
+					resId = R.string.stateBtDeviceInRange;
+				}
+                updateDeviceView( mWifiDevice, mWifiView, resId );
+			}
+			
+			@Override
+			public void backgroundFunction(int backgroundCalledTimes) {
+			}
+
+			@Override
+			public void newBeaconFound(BeaconDevice device) {
+				if( device.equals( mWifiDevice ) ) {
+	                updateDeviceView( mWifiDevice, mWifiView,
+	                				  R.string.stateBtDeviceInRange );
+				}
+			}
+		};
+		
+		mMainWifiOperator
+			= BeaconOperatorFactory
+				.createOperator( this, BeaconOperator.PROTOCOL.WIFI, callback );
+		
 	}
 
 	@Override
@@ -168,9 +205,8 @@ public class MainActivity extends Activity implements Observer {
 			Log.d( "Location listener registered.", p );
 		}
 		
-		enableBluetooth();
-		
 		updateBtDeviceState(mBluetoothDevice);
+		updateWifiDeviceState(mWifiDevice);
 	}
 
 	@Override
@@ -185,6 +221,12 @@ public class MainActivity extends Activity implements Observer {
 		super.onDestroy();
 		unregisterReceiver(mHomeProxReceiver);
         stopScanBluetooth();
+        
+        if( mWifiStateReceiver != null ) {
+        	unregisterReceiver(mWifiStateReceiver);
+        	mWifiStateReceiver = null;
+        }
+        mMainWifiOperator.stopScan( BeaconOperator.STOP_TYPE.CANCELLED );
 	}
 
 	public void onSetHome( MenuItem item ) {
@@ -193,8 +235,21 @@ public class MainActivity extends Activity implements Observer {
 	}
 
 	public void onSelectBluetooth( MenuItem item ) {
-		Intent btIntent = new Intent( this, BluetoothSelectionActivity.class );
-		startActivityForResult(btIntent, REQUEST_BLUETOOTH_SELECTION);
+		Intent intent = new Intent( this, BeaconSelectionActivity.class );
+		intent.putExtra( BeaconSelectionFragment.KEY_BEACON_PROTOCOL,
+						 PROTOCOL.BLUETOOTH );
+		intent.putExtra( BeaconSelectionFragment.KEY_CURRENT_DEVICE,
+						 Preferences.getInstance().getHomeBluetoothDevice() );
+		startActivityForResult(intent, REQUEST_BLUETOOTH_SELECTION);
+	}
+
+	public void onSelectWifi( MenuItem item ) {
+		Intent intent = new Intent( this, BeaconSelectionActivity.class );
+		intent.putExtra( BeaconSelectionFragment.KEY_BEACON_PROTOCOL,
+						 PROTOCOL.WIFI );
+		intent.putExtra( BeaconSelectionFragment.KEY_CURRENT_DEVICE,
+						 Preferences.getInstance().getHomeWifiDevice() );
+		startActivityForResult(intent, REQUEST_WIFI_SELECTION);
 	}
 
 	public void onPreferences( MenuItem item ) {
@@ -205,17 +260,25 @@ public class MainActivity extends Activity implements Observer {
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		switch( requestCode ) {
-			case REQUEST_BLUETOOTH_ENABLE:
-				promptBluetooth( resultCode );
-				break;
 			case REQUEST_BLUETOOTH_SELECTION:
 				if( resultCode == RESULT_OK ) {
-					NamedBluetoothDevice device
-						= data.getParcelableExtra( EXTRAS_BLUETOOTH_DEVICE );
+					BluetoothBeacon device
+						= data.getParcelableExtra( EXTRAS_DEVICE );
 					if( resultCode == RESULT_OK && device != null ) {
 						Preferences.getInstance().setHomeBluetooth( device );
 						mBluetoothDevice = device;
 						updateBtDeviceState(device);
+					}
+				}
+				break;
+			case REQUEST_WIFI_SELECTION:
+				if( resultCode == RESULT_OK ) {
+					WifiBeacon device
+						= data.getParcelableExtra( EXTRAS_DEVICE );
+					if( resultCode == RESULT_OK && device != null ) {
+						Preferences.getInstance().setHomeWifi( device );
+						mWifiDevice = device;
+						updateWifiDeviceState(device);
 					}
 				}
 				break;
@@ -224,26 +287,44 @@ public class MainActivity extends Activity implements Observer {
 		}
 	}
 
-	private void updateBtDeviceState( final NamedBluetoothDevice device ) {
-		mBeaconScanner
-			.startScan( MAIN_SCANNER_NAME, device.getDevice() );
-        updateBluetoothView( mBluetoothDevice, R.string.stateBtDeviceChecking );
+	private void updateBtDeviceState( final BluetoothBeacon device ) {
+		if( device == null ) {
+			mBluetoothView.setText( R.string.promptNoDeviceSelected );
+			return;
+		}
+		
+		// The scan can be performed, even the bluetooth is not enabled.
+		mMainBleOperator.startScan( device );
+        updateDeviceView( mBluetoothDevice, mBluetoothView, R.string.stateBtDeviceChecking );
 	}
 	
-	private void updateBluetoothView(NamedBluetoothDevice device, int stateResId ) {
+	private void updateDeviceView( BeaconDevice device, TextView textView,
+								   int stateResId ) {
 		if( device == null ) {
-			mBluetoothView.setText( R.string.promptNoBluetoothSelected );
+			textView.setText( R.string.promptNoDeviceSelected );
 			return;
 		}
 		
 		Resources resources = getResources();
 		String stateStr = resources.getString( stateResId );
 		String text
-			= resources.getString( R.string.mainBluetooth,
+			= resources.getString( R.string.beaconState,
+								   device.getProtocol().name(),
 								   device.toString(), stateStr );
-		mBluetoothView.setText(text);
+		textView.setText(text);
 	}
 
+	private void updateWifiDeviceState( final WifiBeacon device ) {
+		if( device == null ) {
+			mWifiView.setText( R.string.promptNoDeviceSelected );
+			return;
+		}
+		
+		// It is able to scan, even the wifi is not enabled.
+		mMainWifiOperator.startScan( device );
+        updateDeviceView( device, mWifiView, R.string.stateBtDeviceChecking );
+	}
+	
 	@Override
 	public void update(Observable observable, Object data) {
 		Location location = (Location) data;
@@ -271,30 +352,9 @@ public class MainActivity extends Activity implements Observer {
 									location.getProvider() );
 	}
 	
-	private void enableBluetooth() {
-		BluetoothAdapter bluetooth = BluetoothAdapter.getDefaultAdapter();
-		if( !mBluetoothPrompted && !bluetooth.isEnabled() ) {
-			startActivityForResult( 
-					new Intent( BluetoothAdapter.ACTION_REQUEST_ENABLE ),
-								REQUEST_BLUETOOTH_ENABLE );
-			
-			mBluetoothPrompted = true;
-		}
-	}
-
-	private void promptBluetooth( int resultCode ) {
-		int id;
-		if( resultCode == RESULT_OK ) {
-			id = R.string.promptBluetoothEnableOk;
-		} else {
-			id = R.string.promptBluetoothEnableCanceled;
-		}
-		
-		Toast.makeText( this, id, Toast.LENGTH_LONG ).show();
-	}
-
 	private void stopScanBluetooth() {
-		mBeaconScanner.stopAll( );
+		mMainBleOperator.stopScan( BeaconOperator.STOP_TYPE.CANCELLED );
 	}
+
 }
 

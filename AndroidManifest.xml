@@ -61,7 +61,7 @@
         </provider>
         <activity android:name="com.zsm.driver.android.log.LogActivity"></activity>
         <activity android:name="com.zsm.driver.android.log.LogPreferencesActivity"></activity>
-        <activity android:name=".ui.bluetooth.BluetoothSelectionActivity"></activity>
+        <activity android:name="com.zsm.home.ui.beacon.BeaconSelectionActivity"></activity>
 	</application>
 
 </manifest>

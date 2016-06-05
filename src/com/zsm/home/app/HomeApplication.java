@@ -12,7 +12,7 @@ public class HomeApplication extends Application {
 
 	public static final int LOCATION_DELTA_TIME = 1000 * 60 /12;
 	
-	public static final int BLUETOOTH_SCAN_PRIOD = 20*1000;
+	public static final int DEVICE_SCAN_PRIOD = 20*1000;
 	
 	public static final String HOME_PROXIMITY_ALERT = "com.zsm.home.ACTION_HOME_PROXIMITY_ALERT";
 	

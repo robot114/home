@@ -11,6 +11,11 @@
           android:icon="@drawable/set_home"
           android:onClick="onSelectBluetooth">
     </item>
+    <item android:id="@+id/menuSelectWifi"
+          android:title="@string/menuSelectWifi"
+          android:icon="@drawable/set_home"
+          android:onClick="onSelectWifi">
+    </item>
     <item android:id="@+id/menuPreferences"
           android:title="@string/menuPreferences"
           android:icon="@drawable/setting"

@@ -1,6 +1,7 @@
 package com.zsm.home.preferences;
 
-import com.zsm.home.ui.bluetooth.NamedBluetoothDevice;
+import com.zsm.android.beacon.BluetoothBeacon;
+import com.zsm.android.beacon.WifiBeacon;
 import com.zsm.log.Log;
 
 import android.bluetooth.BluetoothAdapter;
@@ -14,6 +15,9 @@ public class Preferences {
 
 	private static final String KEY_HOME_BLUETOOTH_ADDRESS = "HOME_BLUETOOTH_ADDRESS";
 	private static final String KEY_HOME_BLUETOOTH_ALIAS = "HOME_BLUETOOTH_ALIAS";
+	private static final String KEY_HOME_WIFI_ADDRESS = "HOME_WIFI_BSSID";
+	private static final String KEY_HOME_WIFI_ALIAS = "HOME_WIFI_ALIAS";
+	private static final String KEY_HOME_WIFI_NAME = "HOME_WIFI_SSID";
 	static final String KEY_PROXIMITY_ALERT_ON = "PROXIMITY_ALERT_ON";
 	static final String KEY_PROXIMITY_DISTANCE = "PROXIMITY_DISTANCE";
 
@@ -147,15 +151,15 @@ public class Preferences {
 		}
 	}
 
-	public void setHomeBluetooth(NamedBluetoothDevice device) {
+	public void setHomeBluetooth(BluetoothBeacon device) {
 		preferences
 			.edit()
 			.putString( KEY_HOME_BLUETOOTH_ALIAS, device.getAlias() )
-			.putString( KEY_HOME_BLUETOOTH_ADDRESS, device.getDevice().getAddress() )
+			.putString( KEY_HOME_BLUETOOTH_ADDRESS, device.getAddress() )
 			.commit();
 	}
 	
-	public NamedBluetoothDevice getHomeBluetoothDevice() {
+	public BluetoothBeacon getHomeBluetoothDevice() {
 		String address = preferences.getString( KEY_HOME_BLUETOOTH_ADDRESS, null );
 		BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
 		BluetoothDevice phyDevice = null;
@@ -165,6 +169,25 @@ public class Preferences {
 			return null;
 		}
 		String alias = preferences.getString( KEY_HOME_BLUETOOTH_ALIAS, null );
-		return new NamedBluetoothDevice( phyDevice, alias );
+		return new BluetoothBeacon( phyDevice, alias );
+	}
+
+	public void setHomeWifi(WifiBeacon device) {
+		preferences
+			.edit()
+			.putString( KEY_HOME_WIFI_ALIAS, device.getAlias() )
+			.putString( KEY_HOME_WIFI_ADDRESS, device.getAddress() )
+			.putString( KEY_HOME_WIFI_NAME, device.getName() )
+			.commit();
+	}
+	
+	public WifiBeacon getHomeWifiDevice() {
+		String bssid = preferences.getString( KEY_HOME_WIFI_ADDRESS, null );
+		if( bssid == null ) {
+			return null;
+		}
+		String alias = preferences.getString( KEY_HOME_WIFI_ALIAS, null );
+		String ssid = preferences.getString( KEY_HOME_WIFI_NAME, null );
+		return new WifiBeacon( alias, ssid, bssid );
 	}
 }

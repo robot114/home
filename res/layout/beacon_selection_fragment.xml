@@ -11,23 +11,23 @@
         android:orientation="vertical" >
 
         <TextView
-            android:id="@+id/textViewBluetoothAtHome"
+            android:id="@+id/textViewBeaconAtHome"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/mainBluetooth"
+            android:text="@string/beaconState"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <TextView
-            android:id="@+id/textViewSelectBluetoothAtHome"
+            android:id="@+id/textViewSelectBeaconAtHome"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/selectBluetoothAtHome"
+            android:text="@string/selectBeaconAtHome"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
     </LinearLayout>
 
     <ListView
-        android:id="@+id/listViewSelectBluetooth"
+        android:id="@+id/listViewSelectDevice"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"

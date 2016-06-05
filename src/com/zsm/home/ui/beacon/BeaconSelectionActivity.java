@@ -1,19 +1,19 @@
-package com.zsm.home.ui.bluetooth;
+package com.zsm.home.ui.beacon;
 
 import com.zsm.home.R;
 
 import android.app.Activity;
 import android.os.Bundle;
 
-public class BluetoothSelectionActivity extends Activity {
+public class BeaconSelectionActivity extends Activity {
 
-	private BluetoothSelectionFragment mBluetoothSelectionFragment;
+	private BeaconSelectionFragment mBeaconSelectionFragment;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-        setContentView(R.layout.bluetooth_selection_activity);
+        setContentView(R.layout.beacon_selection_activity);
 
         // However, if we're being restored from a previous state,
         // then we don't need to do anything and should return or else
@@ -22,10 +22,10 @@ public class BluetoothSelectionActivity extends Activity {
             return;
         }
 		
-        mBluetoothSelectionFragment = new BluetoothSelectionFragment();
+        mBeaconSelectionFragment = new BeaconSelectionFragment();
         // Add the fragment to the 'fragment_container' FrameLayout
         getFragmentManager().beginTransaction()
-                .add(R.id.bluetoothFragmentContainer, mBluetoothSelectionFragment)
+                .add(R.id.beaconFragmentContainer, mBeaconSelectionFragment)
                 .commit();
 	}
 
