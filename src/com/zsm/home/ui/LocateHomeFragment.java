@@ -435,7 +435,6 @@ public class LocateHomeFragment extends Fragment
 	}
 
 	void setCurrentLocationAndUpdateMap( double lat, double lng, String address ) {
-		updateToPosition( lat, lng, MARK_AS_LOCATION );
 		Location l = new Location( (String)"?" );
 		l.setLatitude( lat );
 		l.setLongitude( lng );
@@ -444,5 +443,6 @@ public class LocateHomeFragment extends Fragment
 		l.setTime( 0 );
 		l.setAccuracy( 10.0f );
 		currentLocation.set(l, MARK_AS_LOCATION, address);
+		updateToPosition( lat, lng, MARK_AS_LOCATION );
 	}
 }

@@ -145,7 +145,7 @@ class LocationSearcher
 		
 		return true;
 	}
-
+	
 	@Override
 	public boolean onSuggestionSelect(int position) {
 		return false;
@@ -251,6 +251,13 @@ class LocationSearcher
 										null, geoLoaderCallbacks );
 				}
 			} else {
+				Location loca = parseLocation(queryName);
+				if( loca != null ) {
+					fragment
+						.setCurrentLocationAndUpdateMap( 
+							loca.getLatitude(), loca.getLongitude(), "?" );
+					return;
+				}
 				Log.d( "Set location name to query, and waiting for querying. ",
 						"name", queryName );
 				Bundle bundle = new Bundle();
@@ -263,6 +270,47 @@ class LocationSearcher
 
 		private boolean shouldNotQuery() {
 			return !queryForSearchQueryChange;
+		}
+		
+		/**
+		 * Location string should be in the format as "@+-DDD.DDDDD,+-DDD.DDDDD@"
+		 * 
+		 * @param locaStr
+		 * @return location when the format is valid, null otherwise
+		 */
+		private Location parseLocation( String locaStr ) {
+			if( locaStr == null || locaStr.length() < 5 ) {
+				// The shortest string should be "@D,D@"
+				return null;
+			}
+			
+			String str = locaStr.trim();
+			final int length = str.length();
+			if( length < 5 || str.charAt(0) != '@' || str.charAt( length - 1 ) != '@' ) {
+				// The shortest string should be "@D,D@"
+				return null;
+			}
+			
+			int index = str.indexOf( ',' );
+			if( index < 2 || index >= str.length() - 2 || str.indexOf( ',', index + 1 ) > 0 ) {
+				// No ',' or more than one ','
+				return null;
+			}
+			
+			String latStr = str.substring( 1, index );	// skip '('
+			String lngStr = str.substring(index+1, length - 2);	// remove ')'
+			
+			try {
+				double lat = Location.convert(latStr);
+				double lng = Location.convert(lngStr);
+				Location l = new Location( "manual" );
+				l.setLatitude(lat);
+				l.setLongitude(lng);
+				return l;
+			} catch ( Exception e ) {
+				Log.d( "Not location format!", str );
+				return null;
+			}
 		}
 	}
 	
