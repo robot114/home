@@ -297,8 +297,8 @@ class LocationSearcher
 				return null;
 			}
 			
-			String latStr = str.substring( 1, index );	// skip '('
-			String lngStr = str.substring(index+1, length - 2);	// remove ')'
+			String latStr = str.substring( 1, index );	// skip '@'
+			String lngStr = str.substring(index+1, length - 2);	// remove '@'
 			
 			try {
 				double lat = Location.convert(latStr);
